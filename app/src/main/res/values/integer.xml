@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+
+    <integer name="people_profile"> 1 </integer>
+    <integer name="follow"> 2 </integer>
+    <integer name="votes"> 3 </integer>
+    <integer name="iconic_status"> 4 </integer>
+    <integer name="comments"> 5 </integer>
+    <integer name="message"> 6 </integer>
+    <integer name="uploads"> 7 </integer>
+    <integer name="search"> 8 </integer>
+    <integer name="profile_menu"> 9 </integer>
+    <integer name="special_post"> 10 </integer>
+    <integer name="edit_profile"> 11 </integer>
+    <integer name="result"> 12 </integer>
+    <integer name="selected_folder"> 13 </integer>
+    <integer name="share"> 14 </integer>
+    <integer name="post"> 15 </integer>
+
+
+
+
+
+
+
+
+
+</resources>

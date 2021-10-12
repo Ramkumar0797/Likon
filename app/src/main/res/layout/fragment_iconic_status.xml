@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical"
+    tools:context=".auth.IconicStatusFragment"
+    android:paddingTop="50dp">
+
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Choose iconic status"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:textSize="18sp" />
+
+        <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_margin="50dp"
+            android:gravity="center"
+            >
+
+
+                <RadioButton
+                    android:id="@+id/radio_single"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:drawableTintMode="multiply"
+                    android:gravity="center"
+                    android:textColor="@color/black"
+                    android:text="Single" />
+
+                <RadioButton
+                    android:id="@+id/radio_valentine"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="8dp"
+                    android:drawableEnd="@mipmap/ic_heart"
+                    android:textColor="@color/black"
+                    android:gravity="center"
+                    android:text="Valentine" />
+
+
+
+
+                <RadioButton
+                    android:id="@+id/radio_married"
+                    android:layout_width="match_parent"
+                    android:gravity="center"
+                    android:layout_marginTop="8dp"
+                    android:drawableEnd="@mipmap/ic_married"
+                    android:textColor="@color/black"
+                    android:layout_height="match_parent"
+                    android:text="Married" />
+
+
+
+
+
+        </RadioGroup>
+
+    <TextView
+        android:id="@+id/iconic_error"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textColor="@color/red"
+        />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="iconic status used for  'special post' feature purpose."
+        android:gravity="center"
+        android:textColor="@color/light_dark"
+        android:paddingEnd="40dp"
+        android:paddingStart="40dp"
+        />
+
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Next"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+        android:id="@+id/iconic_next"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="50dp"
+        />
+
+
+
+
+</LinearLayout>

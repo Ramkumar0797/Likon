@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/white"
+    tools:context=".auth.SignInActivity">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:gravity="center"
+            android:background="@color/white"
+            >
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Likon"
+                android:textSize="28sp"
+                android:textColor="@color/black"
+                android:textStyle="italic|bold"
+                android:typeface="serif"
+                />
+
+
+        </com.google.android.material.appbar.AppBarLayout>
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/sign_in_layout"
+            app:cardBackgroundColor="@color/white"
+
+            >
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                >
+
+                <TextView
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:text="Likon"
+                    android:textSize="35sp"
+                    android:textStyle="italic|bold"
+                    android:typeface="serif"
+                    android:gravity="center"
+                    android:textColor="@color/blue"
+                    android:shadowColor="@color/blue"
+                    android:background="@drawable/logo_background"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="30dp"
+                    android:layout_marginTop="60dp"
+                    />
+
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:text="Likon need to sign in with google account (gmail) to be a authorized user. The users data (like personal info, message, photos, videos, etc..) will safe and secured in google Firebase database. "
+                    android:lineSpacingExtra="3dp"
+                    android:textColor="@color/black"
+                    android:layout_gravity="center"
+                    />
+
+                <com.google.android.gms.common.SignInButton
+                    android:id="@+id/sign_in_button"
+                    android:layout_width="200dp"
+                    android:layout_height="60dp"
+                    android:layout_marginTop="50dp"
+                    android:layout_gravity="center"
+                    />
+
+
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:weightSum="100"
+                android:orientation="horizontal"
+                android:layout_gravity="bottom"
+                android:layout_marginBottom="100dp"
+                android:layout_marginEnd="50dp"
+                android:layout_marginStart="50dp"
+                >
+
+                <ProgressBar
+                    style="@android:style/Widget.Holo.ProgressBar.Horizontal"
+                    android:layout_width="0dp"
+                    android:layout_weight="50"
+                    android:layout_height="3dp"
+                    android:indeterminate="true"
+                    android:layout_gravity="center"
+                    />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sign In"
+                    android:textSize="12sp"
+                    android:textColor="@color/black"
+                    android:layout_gravity="center"
+                    />
+                <ProgressBar
+                    style="@android:style/Widget.Holo.ProgressBar.Horizontal"
+                    android:layout_width="0dp"
+                    android:layout_weight="50"
+                    android:layout_height="3dp"
+                    android:indeterminate="true"
+                    android:layout_gravity="center"
+                    />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+
+
+</LinearLayout>

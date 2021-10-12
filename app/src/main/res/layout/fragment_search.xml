@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".search.SearchFragment"
+    android:background="@color/app_blue"
+    >
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@color/white">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:padding="12dp"
+                    android:id="@+id/back_arrow"
+                    android:src="@drawable/ic_arrow_back"/>
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:textSize="16sp"
+                    android:hint="Search.."
+                    android:maxLines="1"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:id="@+id/edit_query"
+                    android:background="@android:color/transparent"
+                    android:inputType="textEmailAddress"
+                  />
+
+            </LinearLayout>
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/people_list_view"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            android:visibility="gone"
+            />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:id="@+id/start_loader_layout"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:id="@+id/text_query"
+            android:maxLines="1"
+            android:textStyle="bold"
+            android:ellipsize="end"
+            android:textSize="16sp"
+            android:layout_marginStart="30sp"
+            android:layout_marginEnd="30dp"/>
+        <ProgressBar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/loader"
+            style="@android:style/Widget.Holo.ProgressBar.Horizontal"
+            android:outlineProvider="bounds"
+            android:indeterminate="true"
+            android:indeterminateTint="@color/blue"
+            android:layout_marginStart="30sp"
+            android:layout_marginEnd="30dp"
+            />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:text="Retry"
+            android:layout_gravity="center_horizontal"
+            android:id="@+id/retry"
+            android:visibility="gone"
+            />
+
+    </LinearLayout>
+
+    </LinearLayout>
+
+
+
+
+

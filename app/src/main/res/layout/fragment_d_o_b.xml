@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical"
+    tools:context=".auth.DOBFragment"
+    android:paddingTop="50dp"
+    >
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="Enter date of birth"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:textSize="18sp" />
+        <DatePicker
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:datePickerMode="spinner"
+            android:id="@+id/date_picker"
+            android:layout_marginTop="10dp"
+            android:spinnersShown="true"
+            android:calendarViewShown="false"
+            />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="We use your DOB for age verification and you will get special post features"
+        android:gravity="center"
+        android:textColor="@color/light_dark"
+        android:paddingEnd="40dp"
+        android:paddingStart="40dp"
+        />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Next"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:id="@+id/dob_next"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="50dp"
+        />
+
+</LinearLayout>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/white"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".auth.UsernameFragment"
+    android:layout_margin="8dp"
+    android:paddingTop="50dp"
+    >
+
+
+        <TextView
+            android:id="@+id/text_choose_username"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="Create your username"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="40dp"
+            />
+
+
+
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/username_info"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:hint="Username"
+            app:boxStrokeWidth="2dp"
+            app:errorIconTint="@color/red"
+            app:errorTextColor="@color/red"
+            app:boxStrokeErrorColor="@color/red"
+            >
+
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/username"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._ "
+                android:maxLength="30"
+                android:inputType="textVisiblePassword"
+                android:maxLines="1"
+                android:textColor="@color/black" />
+
+            <ProgressBar
+                style="@android:style/Widget.Holo.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="12dp"
+                android:id="@+id/progress"
+                android:indeterminate="true"
+                android:visibility="invisible"
+                android:indeterminateTint="@color/blue"
+                />
+
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="@color/light_dark"
+            android:padding="30dp"
+            android:text="Make sure, once username registered successful after you cannot change or edit it ever." />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Next"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:id="@+id/username_next"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"/>
+
+
+    </LinearLayout>
