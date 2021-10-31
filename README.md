@@ -13,4 +13,5 @@ RESULT         ->  People know how much others likes their post through rating i
 
 SPECIAL POST   ->  It have special Background effects, so others easily identify the person`s special day it is.
 
-![alt text](https://github.com/Ramkumar0797/Likon/blob/master/Screenshot_1%5B1%5D.jpg?raw=true)
+
+<img src="https://github.com/Ramkumar0797/Likon/blob/master/Screenshot_1%5B1%5D.jpg" width="200">
