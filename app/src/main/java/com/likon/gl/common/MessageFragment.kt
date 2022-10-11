@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
@@ -21,17 +22,15 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import com.likon.gl.MainActivity
-import com.likon.gl.MyApplication
-import com.likon.gl.R
-import com.likon.gl.RoomDBViewModelFactory
+import com.likon.gl.*
 import com.likon.gl.databinding.FragmentMessageBinding
 import com.likon.gl.databinding.MessageAdapterBinding
 import com.likon.gl.interfaces.OnBottomNavVisibilityListener
 import com.likon.gl.interfaces.OnFragmentBackPressed
 import com.likon.gl.models.MessageEntity
 import com.likon.gl.models.UserInfoModel
-import com.likon.gl.viewModel.RoomDBViewModel
+import com.likon.gl.repository.RoomDBRepository
+import com.likon.gl.viewModels.MessageViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
@@ -49,19 +48,25 @@ class MessageFragment( private val onBackPressed : OnFragmentBackPressed) : Frag
     private val binding get() = _binding!!
     private var userInfo : UserInfoModel? = null
     private lateinit var mActivity: Activity
-    private val mContext get() = mActivity
     private lateinit var onBottomNavVisibilityListener: OnBottomNavVisibilityListener
     private val ref: DatabaseReference = FirebaseDatabase.getInstance().getReference("users")
-    private val roomDBViewModel : RoomDBViewModel by viewModels{  RoomDBViewModelFactory((mContext.application as MyApplication).repository) }
-    private val messageList = MessageListAdapter()
-    private val dateFormat = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
 
+    private lateinit var roomDB : RoomDBRepository
+    private val viewModel : MessageViewModel
+            by viewModels{  ViewModelFactory(null, roomDB, null) }
+
+
+    private val messageList = MessageListAdapter()
+    private val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+    private val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
         if(context is MainActivity){
             mActivity = context
             onBottomNavVisibilityListener = context
+            val myApplication =  (mActivity.application as MyApplication)
+            roomDB = myApplication.repository
         }
     }
 
@@ -105,8 +110,8 @@ class MessageFragment( private val onBackPressed : OnFragmentBackPressed) : Frag
         lifecycleScope.launchWhenResumed {
 
             userInfo?.user_id?.let { it ->
-                roomDBViewModel.updateMgeCountNull(it)
-                roomDBViewModel.getMessage(it).collectLatest { values ->
+                viewModel.updateMgeCountNull(it)
+                viewModel.getMessage(it).collectLatest { values ->
                     messageList.submitData(values)
                 }
             }
@@ -239,17 +244,36 @@ class MessageFragment( private val onBackPressed : OnFragmentBackPressed) : Frag
         inner class MessageViewHolder(private val messageAdapterBinding: MessageAdapterBinding) : RecyclerView.ViewHolder(messageAdapterBinding.root),
             View.OnClickListener {
 
-            fun bind(messageEntity: MessageEntity?) {
+            fun bind(messageEntity: MessageEntity?, previousEntity: MessageEntity?) {
 
                 messageAdapterBinding.apply {
 
                     messageEntity?.let {
-                        val action = {r_lay : Boolean, s_lay : Boolean, mge : TextView ->
-                            receiveLayout.isVisible = r_lay
-                            sendLayout.isVisible = s_lay
+
+                        val time =  it.date?.let {time -> timeFormat.format(Date(time)) }
+                        val date =  it.date?.let {date -> dateFormat.format(Date(date)) }
+                        val previousDate = previousEntity?.date?.let { preDate -> dateFormat.format(Date(preDate)) }
+
+                        val action = {receiveLay : Boolean, sendLay : Boolean, mge : TextView ->
+                            receiveLayout.isVisible = receiveLay
+                            sendLayout.isVisible = sendLay
                             mge.text = it.message
+
+                            if(previousDate != date){
+                                timeLabel.apply {
+                                    text = date
+                                    visibility = View.VISIBLE }
+                            }else{
+                                timeLabel.visibility = View.GONE
+                            }
+
                         }
-                        val time =  it.date?.let {date -> dateFormat.format(Date(date)) }
+
+
+                        Log.d(TAG, "bind: ssssssssssaaa $date")
+                        Log.d(TAG, "bind: eeeeeeeeeeeeee $time")
+
+
 
                         if(it.sender == uID ){
                             action(false, true, sendMessage)
@@ -279,7 +303,14 @@ class MessageFragment( private val onBackPressed : OnFragmentBackPressed) : Frag
         }
 
         override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
-            holder.bind(getItem(position))
+            var temp : MessageEntity? = null
+            try {
+                  temp = getItem(position-1)
+            }catch (e :Exception){
+
+            }
+
+            holder.bind(getItem(position),temp)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {

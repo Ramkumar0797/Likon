@@ -12,48 +12,41 @@ import android.widget.ImageView
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.likon.gl.MainActivity
-import com.likon.gl.MyApplication
-import com.likon.gl.R
-import com.likon.gl.RoomDBViewModelFactory
+import com.likon.gl.*
 import com.likon.gl.databinding.ChatAdapterBinding
-import com.likon.gl.databinding.FeedsUsersAdapterBinding
 import com.likon.gl.databinding.FragmentChatBinding
-import com.likon.gl.databinding.MainFeedsAdapterBinding
-import com.likon.gl.home.MainFeedFragment
 import com.likon.gl.interfaces.OnChatClickedListener
 import com.likon.gl.interfaces.OnFragmentChangeListener
-import com.likon.gl.interfaces.OnItemClickedListener
-import com.likon.gl.models.PostWithUserInfoModel
 import com.likon.gl.models.UserInfoModel
 import com.likon.gl.models.UsersEntity
-import com.likon.gl.viewModel.RoomDBViewModel
-import kotlinx.coroutines.Job
+import com.likon.gl.repository.RoomDBRepository
+import com.likon.gl.viewModels.ChatsViewModel
 import kotlinx.coroutines.flow.collectLatest
 
 
 class ChatFragment(private val onFragmentChangeListener: OnFragmentChangeListener) : Fragment(R.layout.fragment_chat), OnChatClickedListener {
 
     private var _binding: FragmentChatBinding? = null
-    private val db = FirebaseFirestore.getInstance()
     private val binding get() = _binding!!
     private lateinit var mActivity: Activity
-    private val mContext get() = mActivity
-    private val roomDBViewModel : RoomDBViewModel by viewModels{  RoomDBViewModelFactory((mContext.application as MyApplication).repository) }
+    private lateinit var roomDB : RoomDBRepository
+    private val viewModel : ChatsViewModel
+         by viewModels{  ViewModelFactory(null, roomDB, null) }
     private val mAuth = FirebaseAuth.getInstance()
     lateinit var currentUserId : String
+
+
     override fun onAttach(context: Context) {
         super.onAttach(context)
         if(context is MainActivity){
             mActivity = context
-
+            val myApplication =  (mActivity.application as MyApplication)
+            roomDB = myApplication.repository
         }
     }
 
@@ -81,7 +74,7 @@ class ChatFragment(private val onFragmentChangeListener: OnFragmentChangeListene
 
             lifecycleScope.launchWhenResumed {
 
-                roomDBViewModel.getChatFlow().collectLatest {
+                viewModel.getChatFlow().collectLatest {
 
                     noFound.isVisible = it.isEmpty()
                     adapter.submitList(it)
@@ -132,6 +125,7 @@ class ChatFragment(private val onFragmentChangeListener: OnFragmentChangeListene
                         lastMessage.apply {
                             text = it.last_mge
 
+                            Log.d("TAG", "bind: zzzzzzzzzzz ${it.sender}")
                             if(it.sender == currentUserId){
                                 setCompoundDrawablesWithIntrinsicBounds(when(it.view_State){
                                     "seen" -> R.drawable.ic_baseline_done_all_24
@@ -139,6 +133,8 @@ class ChatFragment(private val onFragmentChangeListener: OnFragmentChangeListene
                                     "date" -> R.drawable.ic_baseline_done_24
                                     else -> R.drawable.ic_baseline_more_horiz_24
                                 }, 0, 0, 0)
+                            }else{
+                                setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0)
                             }
 
                         }

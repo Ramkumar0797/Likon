@@ -1,6 +1,7 @@
 package com.likon.gl
 
 import android.app.Application
+import com.google.firebase.firestore.FirebaseFirestore
 import com.likon.gl.repository.RoomDBRepository
 
 import kotlinx.coroutines.CoroutineScope
@@ -13,6 +14,7 @@ class MyApplication : Application() {
 
     // Using by lazy so the database and the repository are only created when they're needed
     // rather than when the application starts
-     val database by lazy { User.getDatabase(this) }
+    private val database by lazy { User.getDatabase(this) }
     val repository by lazy { RoomDBRepository(database.userDao()) }
+    val fireStoreDB by lazy { FirebaseFirestore.getInstance()  }
 }

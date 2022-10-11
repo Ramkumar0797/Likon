@@ -1,14 +1,12 @@
 package com.likon.gl.repository
 
-import androidx.lifecycle.LiveData
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import androidx.paging.liveData
 import com.google.firebase.firestore.FirebaseFirestore
 import com.likon.gl.models.UserInfoModel
 import com.likon.gl.paging.SearchPeoplePaging
-import com.likon.gl.viewModel.RoomDBViewModel
+import com.likon.gl.viewModels.RoomDBViewModel
 
 import kotlinx.coroutines.flow.Flow
 

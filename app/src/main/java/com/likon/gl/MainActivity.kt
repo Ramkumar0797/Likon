@@ -2,7 +2,6 @@ package com.likon.gl
 
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -33,15 +32,14 @@ import com.likon.gl.models.UsersEntity
 import com.likon.gl.profile.ProfileContainerFragment
 import com.likon.gl.search.SearchContainerFragment
 import com.likon.gl.shots.ShotsContainerFragment
-import com.likon.gl.viewModel.RoomDBViewModel
+import com.likon.gl.viewModels.RoomDBViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
-import java.util.*
 
 
 private const val TAG = "MainActivity"
 
-class MainActivity : AppCompatActivity(),
+class           MainActivity : AppCompatActivity(),
     OnBackPressedListener, OnShowAndDismissDialog,
     OnBottomNavVisibilityListener {
 
@@ -55,7 +53,8 @@ class MainActivity : AppCompatActivity(),
 
     private lateinit var mViewPager: ViewPager2
     private lateinit var binding: ActivityMainBinding
-    private val roomDBViewModel : RoomDBViewModel by viewModels{  RoomDBViewModelFactory((application as MyApplication).repository) }
+    private val roomDBViewModel : RoomDBViewModel by
+    viewModels{  ViewModelFactory(null,(application as MyApplication).repository, null) }
     private lateinit var alertDialog : AlertDialog
     private var uploadTask : UploadTask? = null
     private val mAuth = FirebaseAuth.getInstance()
@@ -98,7 +97,7 @@ class MainActivity : AppCompatActivity(),
 
                 setOnItemReselectedListener {
 
-                    val action = {index : Int -> val fragment = supportFragmentManager.fragments[index]
+                    val action =  {index : Int -> val fragment = supportFragmentManager.fragments[index]
                         if (fragment is OnReselectedListener)
                             fragment.onReselected()}
                     when(it.itemId) {

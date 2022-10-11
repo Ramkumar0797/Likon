@@ -101,7 +101,7 @@ interface UserDao {
     @Query("UPDATE  users SET username =:username, profile_image =:profile, gender =:gender where user_id = :uid ")
     suspend fun updateUser(uid: String, username : String?, profile : String?, gender : String?)
 
-    @Query("UPDATE  users SET unseen_count = unseen_count + 1, last_mge =:mge where user_id = :uid ")
+    @Query("UPDATE  users SET unseen_count = unseen_count + 1, last_mge =:mge, sender =:uid  where user_id = :uid ")
     suspend fun updateMgeCount(uid : String?, mge : String?) : Int
 
     @Query("UPDATE  users SET unseen_count = 0 where user_id = :uid ")

@@ -9,21 +9,17 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.LoadState
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
-import com.likon.gl.MainActivity
-import com.likon.gl.MyApplication
-import com.likon.gl.R
-import com.likon.gl.RoomDBViewModelFactory
+import com.likon.gl.*
 import com.likon.gl.adapters.LoadingStateAdapter
 import com.likon.gl.adapters.PeopleListAdapter
 import com.likon.gl.databinding.FragmentFollowingBinding
 import com.likon.gl.interfaces.OnFragmentChangeListener
 import com.likon.gl.interfaces.OnPeopleProfileClickListener
 import com.likon.gl.models.UserInfoModel
-import com.likon.gl.viewModel.FollowListViewModel
-import com.likon.gl.viewModel.RoomDBViewModel
+import com.likon.gl.repository.RoomDBRepository
+import com.likon.gl.viewModels.FollowListViewModel
 
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -35,20 +31,24 @@ class FollowingFragment(private val containerFragment : Fragment, private val on
 
 
     private var _binding: FragmentFollowingBinding? = null
-    private val auth = FirebaseAuth.getInstance()
-    private val db = FirebaseFirestore.getInstance()
     private val binding get() = _binding!!
     private var userInfoModel : UserInfoModel? = null
-    private val viewModel by viewModels<FollowListViewModel>()
     private val peopleListAdapter = PeopleListAdapter(this)
     private lateinit var mActivity: Activity
-    private val mContext get() = mActivity
-    private val roomDBViewModel : RoomDBViewModel by viewModels{  RoomDBViewModelFactory((mContext.application as MyApplication).repository) }
+    private lateinit var roomDB : RoomDBRepository
+    private lateinit var fireStore : FirebaseFirestore
+
+
+    private val viewModel : FollowListViewModel by
+    viewModels{ ViewModelFactory(fireStore, roomDB, null) }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
         if(context is MainActivity){
             mActivity = context
+            val myApplication =  (mActivity.application as MyApplication)
+            roomDB = myApplication.repository
+            fireStore = myApplication.fireStoreDB
         }
     }
 
@@ -72,6 +72,11 @@ class FollowingFragment(private val containerFragment : Fragment, private val on
             retry.setOnClickListener {
                 peopleListAdapter.retry()
             }
+            followingRefresher.setOnRefreshListener {
+
+                peopleListAdapter.refresh()
+                followingRefresher.isRefreshing = false
+            }
 
             peopleListAdapter.addLoadStateListener {
                 val loading = it.source.refresh is LoadState.Loading
@@ -85,7 +90,7 @@ class FollowingFragment(private val containerFragment : Fragment, private val on
                 noResult.isVisible =errorState?.error is NullPointerException && error
                 networkError.isVisible =errorState?.error is FirebaseFirestoreException && error
                 loader.isVisible = loading
-                followingContainer.isVisible = it.source.refresh is LoadState.NotLoading && !error
+                followingRefresher.isVisible = it.source.refresh is LoadState.NotLoading && !error
             }
 
         }
@@ -95,7 +100,7 @@ class FollowingFragment(private val containerFragment : Fragment, private val on
 
         lifecycleScope.launch {
 
-            viewModel.followList(userInfoModel?.user_id!!,"following", roomDBViewModel).collectLatest {
+            viewModel.followList(userInfoModel?.user_id!!,"following").collectLatest {
                 peopleListAdapter.submitData(it)
 
             }

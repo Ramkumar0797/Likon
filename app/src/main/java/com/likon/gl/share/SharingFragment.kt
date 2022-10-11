@@ -19,14 +19,13 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageMetadata
-import com.likon.*
 import com.likon.gl.MyApplication
 import com.likon.gl.R
-import com.likon.gl.RoomDBViewModelFactory
+import com.likon.gl.ViewModelFactory
 import com.likon.gl.databinding.FragmentSharingBinding
 import com.likon.gl.interfaces.OnFragmentBackPressed
 import com.likon.gl.models.UploadEntityModel
-import com.likon.gl.viewModel.RoomDBViewModel
+import com.likon.gl.viewModels.RoomDBViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
@@ -43,7 +42,8 @@ class SharingFragment( private val onBackPressed : OnFragmentBackPressed) : Frag
     private var type: String? = null
     private lateinit var mActivity: Activity
     private val mContext get() = mActivity
-    private val roomDBViewModel: RoomDBViewModel by viewModels { RoomDBViewModelFactory((mContext.application as MyApplication).repository) }
+    private val roomDBViewModel: RoomDBViewModel by
+    viewModels {  ViewModelFactory(null,(mContext.application as MyApplication).repository, null) }
     private val ref: DatabaseReference = FirebaseDatabase.getInstance().getReference("users")
     private lateinit var alertDialog : AlertDialog
     private lateinit var currentUserId : String

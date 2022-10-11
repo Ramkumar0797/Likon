@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import androidx.fragment.app.Fragment
 import android.view.View
@@ -19,34 +18,22 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
-import com.google.android.material.appbar.AppBarLayout
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
-import com.google.firebase.firestore.MetadataChanges
-import com.likon.gl.MainActivity
-import com.likon.gl.MyApplication
-import com.likon.gl.R
-import com.likon.gl.RoomDBViewModelFactory
+import com.likon.gl.*
 import com.likon.gl.adapters.LoadingStateAdapter
-import com.likon.gl.adapters.PostsAdapter
 import com.likon.gl.databinding.ContentsAdapterBinding
 import com.likon.gl.databinding.FragmentProfileBinding
 import com.likon.gl.interfaces.OnFragmentChangeListener
 import com.likon.gl.interfaces.OnPostItemsClickListener
 import com.likon.gl.models.PostModel
 import com.likon.gl.models.UserInfoModel
-import com.likon.gl.viewModel.PostsViewModel
-import com.likon.gl.viewModel.RoomDBViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import com.likon.gl.repository.RoomDBRepository
+import com.likon.gl.sealedClasses.Data
+import com.likon.gl.viewModels.ProfileViewModel
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
 import java.lang.NullPointerException
 
-private const val TAG = "ProfileFragment"
 
 class ProfileFragment(private val onFragmentChangeListener: OnFragmentChangeListener)
     : Fragment(R.layout.fragment_profile), View.OnClickListener, OnPostItemsClickListener,
@@ -54,7 +41,6 @@ class ProfileFragment(private val onFragmentChangeListener: OnFragmentChangeList
 
 
     private var _binding: FragmentProfileBinding? = null
-    private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
     private val binding get() = _binding!!
     private var  userInfo : UserInfoModel? = null
@@ -62,10 +48,9 @@ class ProfileFragment(private val onFragmentChangeListener: OnFragmentChangeList
     private  var sharedPref : SharedPreferences? = null
     private lateinit var postsListAdapter: PostsListAdapter
     private lateinit var mActivity: Activity
-    private val mContext get() = mActivity
-    private val roomDBViewModel : RoomDBViewModel by viewModels{  RoomDBViewModelFactory((mContext.application as MyApplication).repository) }
-    private val viewModel by viewModels<PostsViewModel>()
-    private val setOnClick = {  views : Array<View> -> for(v in views){ v.setOnClickListener(this) } }
+   private lateinit var fireStore : FirebaseFirestore
+    private lateinit var roomDB : RoomDBRepository
+    private val viewModel : ProfileViewModel by viewModels{  ViewModelFactory(fireStore, roomDB, currentUId) }
     private lateinit var currentUId : String
 
 
@@ -73,6 +58,9 @@ class ProfileFragment(private val onFragmentChangeListener: OnFragmentChangeList
         super.onAttach(context)
         if(context is MainActivity){
             mActivity = context
+            val myApplication =  (mActivity.application as MyApplication)
+            fireStore = myApplication.fireStoreDB
+            roomDB = myApplication.repository
             currentUId = context.currentUserId
         }
     }
@@ -88,13 +76,20 @@ class ProfileFragment(private val onFragmentChangeListener: OnFragmentChangeList
             sharedPref = activity?.getSharedPreferences(getString(R.string.app_name), Context.MODE_PRIVATE)
             tUsername = sharedPref?.getString(getString(R.string.username_key),"").toString()
             username.text = tUsername
-            setOnClick(arrayOf(profileMenu, textFollowers, textFollowings, textPost, countFollowers, countFollowings,
-                countPosts, iconicStatus))
+
+            val action = {  views : Array<View> -> for(v in views){ v.setOnClickListener(this@ProfileFragment) } }
+            multiSetOnClick(arrayOf(profileMenu, textFollowers, textFollowings, textPost, countFollowers, countFollowings,
+                countPosts, iconicStatus), action)
+
             refresher.setOnRefreshListener(this@ProfileFragment)
 
         }
 
         init()
+    }
+
+    private inline fun multiSetOnClick(  views : Array<View>, action :  (Array<View>) -> Unit){
+        action(views)
     }
 
     private fun init(){
@@ -103,37 +98,42 @@ class ProfileFragment(private val onFragmentChangeListener: OnFragmentChangeList
             profileLayout.visibility = View.INVISIBLE
         }
 
-        val userId = auth.currentUser?.uid
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val   document = userId?.let { db.collection("users").document(it).get().await() }
-                withContext(Dispatchers.Main){
-                    if (document != null) {
-                        userInfo = document.toObject(UserInfoModel::class.java)
-                        val metadata = document.metadata.isFromCache
-                        setUserInfo(userInfo, userId, metadata)
+
+        lifecycleScope.launchWhenResumed {
+
+            viewModel.getUserInfo().collectLatest {
+
+                when (it) {
+                    is Data.Success -> {
+                        userInfo = it.userInfoModel
+                        userInfo?.let { it1 -> setUserInfo(it1, currentUId) }
+                    }
+                    is Data.Loading -> {
+
+                    }
+                    else -> {
+
                     }
                 }
-            }catch (e: Exception){
-                Log.d(TAG, "onViewCreated: ddddddddddddddddddddddddddddddddddddddddd $e")
             }
         }
+
     }
 
-    private fun setUserInfo(userInfo : UserInfoModel?, id : String, isOffline : Boolean){
+    private fun setUserInfo(userInfo : UserInfoModel, id : String){
 
         binding.apply {
 
             postsListAdapter = PostsListAdapter(this@ProfileFragment, userInfo)
-            countFollowers.text = userInfo?.followers.toString()
-            countFollowings.text = userInfo?.following.toString()
-            countPosts.text = userInfo?.posts.toString()
+            countFollowers.text = userInfo.followers.toString()
+            countFollowings.text = userInfo.following.toString()
+            countPosts.text = userInfo.posts.toString()
 
 
             if(username.length() == 0){
-                username.text = userInfo?.username
+                username.text = userInfo.username
                 with(sharedPref?.edit()){
-                    this?.putString(getString(R.string.username_key), userInfo?.username)
+                    this?.putString(getString(R.string.username_key), userInfo.username)
                     this?.apply()
                 }
             }
@@ -141,21 +141,21 @@ class ProfileFragment(private val onFragmentChangeListener: OnFragmentChangeList
             infoLoader.visibility = View.GONE
             profileLayout.visibility = View.VISIBLE
 
-            fulName.text = userInfo?.ful_name
+            fulName.text = userInfo.ful_name
 
             val getImage = {gender : String?, profile : String? -> profile ?: if(gender == "male")
                 R.raw.male else R.raw.female
             }
-            if(userInfo?.profile_image == null){
+            if(userInfo.profile_image == null){
                 profileImage.scaleType = ImageView.ScaleType.FIT_CENTER
             }
 
             Glide.with(this@ProfileFragment)
-                .load( getImage(userInfo?.gender, userInfo?.profile_image))
+                .load( getImage(userInfo.gender, userInfo.profile_image))
                 .into(profileImage)
 
 
-            if(userInfo?.iconic_status != null){
+            if(userInfo.iconic_status != null){
                 iconicStatus.setImageResource(getIconicImage(userInfo.iconic_status, userInfo.gender))
             }
 
@@ -183,9 +183,8 @@ class ProfileFragment(private val onFragmentChangeListener: OnFragmentChangeList
             }
 
             lifecycleScope.launchWhenResumed {
-                viewModel.mainFeeds(id, roomDBViewModel, currentUId)
+                viewModel.mainFeeds(id)
                     .collectLatest { value ->
-
                         postsListAdapter.submitData(value)
                     }
             }
@@ -253,7 +252,8 @@ class ProfileFragment(private val onFragmentChangeListener: OnFragmentChangeList
     }
 
 
-    inner class PostsListAdapter(val onPostItemsClick : OnPostItemsClickListener, val userInfoModel: UserInfoModel?) :  PagingDataAdapter<PostModel, PostsListAdapter.PostsViewHolder>(DIFF_CALLBACK) {
+    inner class PostsListAdapter(val onPostItemsClick : OnPostItemsClickListener, val userInfoModel: UserInfoModel?)
+        :  PagingDataAdapter<PostModel, PostsListAdapter.PostsViewHolder>(DIFF_CALLBACK) {
 
         inner class PostsViewHolder(private val contentsAdapterBinding: ContentsAdapterBinding)
             : RecyclerView.ViewHolder(contentsAdapterBinding.root),
@@ -295,7 +295,6 @@ class ProfileFragment(private val onFragmentChangeListener: OnFragmentChangeList
         userInfoModel: UserInfoModel?
     ) {
 
-        Log.d(TAG, "onItemClick: rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr")
         onFragmentChangeListener.onChange(this, navigateTO, Bundle()
             .apply { putParcelable("post", postModel)
                 putParcelable("user info", userInfo)})

@@ -10,7 +10,8 @@ import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.Source
 import com.likon.gl.models.FollowCountsEntityModel
 import com.likon.gl.models.UserInfoModel
-import com.likon.gl.viewModel.RoomDBViewModel
+import com.likon.gl.repository.RoomDBRepository
+import com.likon.gl.viewModels.RoomDBViewModel
 
 
 import kotlinx.coroutines.tasks.await
@@ -20,10 +21,10 @@ private const val TAG = "FollowPeoplePaging"
 class FollowPeoplePaging(private val db: FirebaseFirestore,
                          private val userId : String,
                          private val query : String ,
-                         private val localDB : RoomDBViewModel) : PagingSource<QuerySnapshot, UserInfoModel>() {
+                         private val localDB : RoomDBRepository) : PagingSource<QuerySnapshot, UserInfoModel>() {
 
     override fun getRefreshKey(state: PagingState<QuerySnapshot, UserInfoModel>): QuerySnapshot? {
-        TODO("Not yet implemented")
+        return null
     }
 
     override suspend fun load(params: LoadParams<QuerySnapshot>): LoadResult<QuerySnapshot, UserInfoModel> {

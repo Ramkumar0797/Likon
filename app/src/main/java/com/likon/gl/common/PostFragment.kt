@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
 import androidx.core.view.isVisible
@@ -12,24 +11,19 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
-import com.likon.gl.MainActivity
-import com.likon.gl.MyApplication
-import com.likon.gl.R
-import com.likon.gl.RoomDBViewModelFactory
-import com.likon.gl.databinding.FragmentPeopleProfileBinding
+import com.likon.gl.*
 import com.likon.gl.databinding.FragmentPostBinding
 import com.likon.gl.interfaces.OnFragmentBackPressed
 import com.likon.gl.interfaces.OnFragmentChangeListener
 import com.likon.gl.models.PostModel
 import com.likon.gl.models.UserInfoModel
-import com.likon.gl.models.VoteModel
-import com.likon.gl.models.VotesEntityModel
-import com.likon.gl.viewModel.PostsViewModel
-import com.likon.gl.viewModel.RoomDBViewModel
+import com.likon.gl.repository.RoomDBRepository
+import com.likon.gl.viewModels.ChatsViewModel
+import com.likon.gl.viewModels.PostViewModel
+import com.likon.gl.viewModels.RoomDBViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
@@ -46,7 +40,9 @@ class PostFragment(private val onFragmentChangeListener: OnFragmentChangeListene
     private lateinit var post : PostModel
     private lateinit var mActivity: Activity
     private val mContext get() = mActivity
-    private val roomDBViewModel : RoomDBViewModel by viewModels{  RoomDBViewModelFactory((mContext.application as MyApplication).repository) }
+    private lateinit var roomDB : RoomDBRepository
+    private val viewModel : PostViewModel
+            by viewModels{  ViewModelFactory(null, roomDB, null) }
     private lateinit var currentUId : String
 
 
@@ -56,6 +52,8 @@ class PostFragment(private val onFragmentChangeListener: OnFragmentChangeListene
         if(context is MainActivity){
             mActivity = context
             currentUId = context.currentUserId
+            val myApplication =  (mActivity.application as MyApplication)
+            roomDB = myApplication.repository
         }
     }
 
@@ -95,7 +93,7 @@ class PostFragment(private val onFragmentChangeListener: OnFragmentChangeListene
 
             lifecycleScope.launchWhenResumed {
                 post.content_id?.let { id ->
-                    roomDBViewModel.getVoteFlow(id).collectLatest { value ->
+                    viewModel.getVoteFlow(id).collectLatest { value ->
                         votes.text =
                             getString(R.string.votes, value?.votes_count)
                         val lVote = { upVote: Boolean, downVote: Boolean ->
@@ -230,17 +228,17 @@ class PostFragment(private val onFragmentChangeListener: OnFragmentChangeListene
             when(job){
 
                 "increment" ->{
-                    postId?.let {pId -> roomDBViewModel.updateVote(pId, vote, 1)
+                    postId?.let {pId -> viewModel.updateVote(pId, vote, 1)
                         setVote(pId, vote)
                     }
                 }
                 "decrement" ->{
-                    postId?.let {pId -> roomDBViewModel.updateVote(pId, vote, -1)
+                    postId?.let {pId -> viewModel.updateVote(pId, vote, -1)
                         setVote(pId, null)
                     }
                 }
                 "update" ->{
-                    postId?.let {pId -> roomDBViewModel.updateVoteState(pId, vote!!)
+                    postId?.let {pId -> viewModel.updateVoteState(pId, vote!!)
                         setVote(pId, vote)
                     }
                 }

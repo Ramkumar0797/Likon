@@ -6,20 +6,20 @@ import androidx.paging.PagingData
 import com.google.firebase.firestore.FirebaseFirestore
 import com.likon.gl.models.PostWithUserInfoModel
 import com.likon.gl.paging.MainFeedPaging
-import com.likon.gl.viewModel.RoomDBViewModel
+import com.likon.gl.viewModels.RoomDBViewModel
 
 import kotlinx.coroutines.flow.Flow
 
 class MainFeedPagingRepository(private val db: FirebaseFirestore) {
 
-    fun getResult( userId : String, roomDBViewModel: RoomDBViewModel) : Flow<PagingData<PostWithUserInfoModel>> {
+    fun getResult( userId : String, roomDBRepository: RoomDBRepository) : Flow<PagingData<PostWithUserInfoModel>> {
 
         return Pager(
                 config = PagingConfig(
                         pageSize = NETWORK_PAGE_SIZE,
                         enablePlaceholders = false
                 ),
-                pagingSourceFactory = { MainFeedPaging(db, userId, roomDBViewModel) }
+                pagingSourceFactory = { MainFeedPaging(db, userId, roomDBRepository) }
         ).flow
 
     }

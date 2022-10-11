@@ -6,13 +6,13 @@ import androidx.paging.PagingData
 import com.google.firebase.firestore.FirebaseFirestore
 import com.likon.gl.models.UserInfoModel
 import com.likon.gl.paging.FollowPeoplePaging
-import com.likon.gl.viewModel.RoomDBViewModel
+import com.likon.gl.viewModels.RoomDBViewModel
 
 import kotlinx.coroutines.flow.Flow
 
 class FollowPeopleListRepository(private val db: FirebaseFirestore) {
 
-    fun getResult( userId : String, query : String,  localDB : RoomDBViewModel) : Flow<PagingData<UserInfoModel>> {
+    fun getResult( userId : String, query : String,  localDB : RoomDBRepository) : Flow<PagingData<UserInfoModel>> {
 
         return Pager(
                 config = PagingConfig(

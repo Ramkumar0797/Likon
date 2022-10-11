@@ -5,18 +5,20 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.google.firebase.firestore.*
 import com.likon.gl.models.*
-import com.likon.gl.viewModel.RoomDBViewModel
+import com.likon.gl.repository.RoomDBRepository
+import com.likon.gl.viewModels.RoomDBViewModel
 import kotlinx.coroutines.tasks.await
 import java.lang.NullPointerException
 
 private const val TAG = "MainFeedPaging"
-class MainFeedPaging(private val db: FirebaseFirestore, private val currentUserId : String, private val localDB : RoomDBViewModel) : PagingSource<QuerySnapshot, PostWithUserInfoModel>() {
+class MainFeedPaging(private val db: FirebaseFirestore, private val currentUserId : String, private val localDB : RoomDBRepository)
+    : PagingSource<QuerySnapshot, PostWithUserInfoModel>() {
 
     private var checker : Boolean = false
     private val limit : Long = 3
 
     override fun getRefreshKey(state: PagingState<QuerySnapshot, PostWithUserInfoModel>): QuerySnapshot? {
-        TODO("Not yet implemented")
+        return null
     }
 
     override suspend fun load(params: LoadParams<QuerySnapshot>): LoadResult<QuerySnapshot, PostWithUserInfoModel> {
@@ -30,7 +32,7 @@ class MainFeedPaging(private val db: FirebaseFirestore, private val currentUserI
                     checker = true
                 }
                 currentPage = params.key ?: db.collection("users/$currentUserId/follow")
-                              .whereEqualTo("following",true) .limit(limit).get(Source.SERVER).await()
+                              .whereEqualTo("following",true) .limit(limit).get().await()
 
             }catch(e : FirebaseFirestoreException){
                 throw e
@@ -122,7 +124,8 @@ class MainFeedPaging(private val db: FirebaseFirestore, private val currentUserI
 
                     post.content_id?.let { pid ->
 
-                        val voteModel =  db.document("users/$it/posts/$pid/votes/$currentUserId").get().await().toObject(VoteModel::class.java)
+                        val voteModel =  db.document("users/$it/posts/$pid/votes/$currentUserId").get()
+                            .await().toObject(VoteModel::class.java)
                         val action = {vote : Boolean? -> VotesEntityModel(post_id = pid, vote, post.votes)}
 
                         if(voteModel?.vote != null){

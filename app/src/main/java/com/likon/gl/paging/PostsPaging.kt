@@ -6,19 +6,19 @@ import androidx.paging.PagingState
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.QuerySnapshot
-import com.google.firebase.firestore.Source
 import com.likon.gl.models.PostModel
-import com.likon.gl.models.PostWithUserInfoModel
 import com.likon.gl.models.VoteModel
 import com.likon.gl.models.VotesEntityModel
-import com.likon.gl.viewModel.RoomDBViewModel
+import com.likon.gl.repository.RoomDBRepository
+import com.likon.gl.viewModels.RoomDBViewModel
 
 import kotlinx.coroutines.tasks.await
 import java.lang.NullPointerException
 
 private const val TAG = "MainFeedPaging"
 class PostsPaging(private val db: FirebaseFirestore, private val userId : String, private val currentUid : String,
-                  private val localDB : RoomDBViewModel) : PagingSource<QuerySnapshot, PostModel>() {
+                  private val localDB  : RoomDBRepository
+) : PagingSource<QuerySnapshot, PostModel>() {
     override fun getRefreshKey(state: PagingState<QuerySnapshot, PostModel>): QuerySnapshot? {
         TODO("Not yet implemented")
     }

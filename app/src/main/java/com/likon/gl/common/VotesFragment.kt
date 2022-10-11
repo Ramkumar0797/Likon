@@ -1,11 +1,11 @@
 package com.likon.gl.common
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -14,8 +14,6 @@ import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.likon.gl.R
 import com.likon.gl.adapters.LoadingStateAdapter
@@ -23,7 +21,7 @@ import com.likon.gl.databinding.FragmentVotesBinding
 import com.likon.gl.databinding.PeopleListAdapterBinding
 import com.likon.gl.interfaces.*
 import com.likon.gl.models.UserInfoModel
-import com.likon.gl.viewModel.VoteListViewModel
+import com.likon.gl.viewModels.VoteListViewModel
 
 import kotlinx.coroutines.flow.collectLatest
 import java.lang.NullPointerException
@@ -61,6 +59,14 @@ class VotesFragment(private val onFragmentChange: OnFragmentChangeListener,
 
             }
 
+            backArrow.setOnClickListener {
+                onBackPressed.onBackPress()
+            }
+
+            votesRefresher.setOnRefreshListener {
+                votesAdapter.refresh()
+                votesRefresher.isRefreshing = false
+            }
 
             votesAdapter.addLoadStateListener {
                 val loading = it.source.refresh is LoadState.Loading
@@ -75,7 +81,7 @@ class VotesFragment(private val onFragmentChange: OnFragmentChangeListener,
                 noResult.isVisible =errorState?.error is NullPointerException && error
                 networkError.isVisible =errorState?.error is FirebaseFirestoreException && error
                 loader.isVisible = loading
-                voteList.isVisible = it.source.refresh is LoadState.NotLoading && !error
+                votesRefresher.isVisible = it.source.refresh is LoadState.NotLoading && !error
 
             }
 
@@ -126,10 +132,15 @@ class VotesFragment(private val onFragmentChange: OnFragmentChangeListener,
 
                     userInfoModel?.let {
                         username.text = userInfoModel.username
-                        val getImage = {gender : String? -> if(gender == "male") R.raw.male else R.raw.female }
+                        val getImage = {gender : String?, profile : String? ->
+                            profile ?: if(gender == "male") R.raw.male else R.raw.female
+                        }
 
+                        if(it.profile_image == null){
+                            profileImage.scaleType = ImageView.ScaleType.FIT_CENTER
+                        }
                         Glide.with(itemView)
-                            .load(getImage(it.gender))
+                            .load(getImage(it.gender, it.profile_image))
                             .into(profileImage)
 
                         name.text = userInfoModel.ful_name

@@ -6,6 +6,7 @@ import com.likon.gl.models.UserInfoModel
 
 interface OnPostItemsClickListener {
 
+
     fun onItemClick(navigateTO : Int, postModel: PostModel?, userInfoModel: UserInfoModel? )
 
 }

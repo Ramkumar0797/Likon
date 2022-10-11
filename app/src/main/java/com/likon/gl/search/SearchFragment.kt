@@ -16,23 +16,17 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.LoadState
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import com.likon.*
-import com.likon.gl.MainActivity
-import com.likon.gl.MyApplication
-import com.likon.gl.R
-import com.likon.gl.RoomDBViewModelFactory
+import com.likon.gl.*
 import com.likon.gl.adapters.LoadingStateAdapter
 import com.likon.gl.adapters.PeopleListAdapter
 import com.likon.gl.databinding.FragmentSearchBinding
-import com.likon.gl.interfaces.OnBackPressedListener
 import com.likon.gl.interfaces.OnFragmentBackPressed
 import com.likon.gl.interfaces.OnFragmentChangeListener
 import com.likon.gl.interfaces.OnPeopleProfileClickListener
 import com.likon.gl.models.UserInfoModel
-import com.likon.gl.viewModel.RoomDBViewModel
-import com.likon.gl.viewModel.SearchListViewModel
+import com.likon.gl.viewModels.RoomDBViewModel
+import com.likon.gl.viewModels.SearchListViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import java.util.*
@@ -51,7 +45,8 @@ class SearchFragment(private val onFragmentChangeListener: OnFragmentChangeListe
     private lateinit var query : String
     private lateinit var mActivity: Activity
     private val mContext get() = mActivity
-    private val roomDBViewModel : RoomDBViewModel by viewModels{  RoomDBViewModelFactory((mContext.application as MyApplication).repository) }
+    private val roomDBViewModel : RoomDBViewModel by
+    viewModels{   ViewModelFactory(null,(mContext.application as MyApplication).repository, null) }
 
 
 

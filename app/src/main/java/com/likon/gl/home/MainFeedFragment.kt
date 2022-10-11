@@ -1,10 +1,9 @@
 package com.likon.gl.home
 
 import android.app.Activity
-import android.content.ContentValues.TAG
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,18 +16,15 @@ import androidx.paging.LoadState
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
 import com.google.firebase.firestore.*
-import com.likon.*
-import com.likon.gl.MainActivity
-import com.likon.gl.MyApplication
+import com.likon.gl.*
 import com.likon.gl.R
-import com.likon.gl.RoomDBViewModelFactory
 import com.likon.gl.adapters.LoadingStateAdapter
 import com.likon.gl.databinding.FeedsUsersAdapterBinding
 import com.likon.gl.databinding.FragmentMainfeedBinding
 import com.likon.gl.databinding.MainFeedsAdapterBinding
+import com.likon.gl.demo.DemoActivity
 import com.likon.gl.interfaces.OnDownVoteClickedListener
 import com.likon.gl.interfaces.OnFragmentChangeListener
 import com.likon.gl.interfaces.OnPostItemsClickListener
@@ -37,36 +33,36 @@ import com.likon.gl.models.FollowCountsEntityModel
 import com.likon.gl.models.PostModel
 import com.likon.gl.models.PostWithUserInfoModel
 import com.likon.gl.models.UserInfoModel
-import com.likon.gl.viewModel.MainFeedViewModel
-import com.likon.gl.viewModel.RoomDBViewModel
-
+import com.likon.gl.repository.RoomDBRepository
+import com.likon.gl.viewModels.MainFeedViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.lang.NullPointerException
-import kotlin.random.Random
 
 
 class MainFeedFragment(private val onFragmentChangeListener: OnFragmentChangeListener) : Fragment(R.layout.fragment_mainfeed),
     OnPostItemsClickListener,
     OnUpVoteClickedListener, OnDownVoteClickedListener{
 
+
     private var _binding: FragmentMainfeedBinding? = null
-    private val db = FirebaseFirestore.getInstance()
     private val binding get() = _binding!!
-    private val viewModel by viewModels<MainFeedViewModel>()
-    private val mainFeedAdapter = MainFeeds(this, this, this)
     private lateinit var mActivity: Activity
-    private val mContext get() = mActivity
-    private val roomDBViewModel : RoomDBViewModel by viewModels{  RoomDBViewModelFactory((mContext.application as MyApplication).repository) }
+    private lateinit var fireStore : FirebaseFirestore
+    private lateinit var roomDB : RoomDBRepository
+    private val viewModel : MainFeedViewModel by viewModels { ViewModelFactory(fireStore,roomDB, null) }
     private lateinit var currentUId : String
+    private val mainFeedAdapter = MainFeeds(this, this, this)
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
         if(context is MainActivity){
             mActivity = context
+            val myApplication =  (mActivity.application as MyApplication)
+            fireStore = myApplication.fireStoreDB
+            roomDB = myApplication.repository
             currentUId = context.currentUserId
         }
     }
@@ -81,6 +77,32 @@ class MainFeedFragment(private val onFragmentChangeListener: OnFragmentChangeLis
             uploads.setOnClickListener{
                 onFragmentChangeListener.onChange(this@MainFeedFragment, R.integer.uploads, null)
             }
+
+            likon.setOnClickListener {
+
+                startActivity(Intent(mActivity, DemoActivity::class.java))
+
+            }
+            refreshUser.setOnRefreshListener {
+                refreshUser.visibility  = View.GONE
+                loader.visibility = View.VISIBLE
+                mainFeedAdapter.refresh()
+                refreshUser.isRefreshing = false
+            }
+
+            refreshFeeds.setOnRefreshListener {
+//                refreshFeeds.visibility  = View.GONE
+//                loader.visibility = View.VISIBLE
+                mainFeedAdapter.refresh()
+                refreshFeeds.isRefreshing = false
+            }
+
+            init()
+        }
+    }
+
+    private fun init(){
+        binding.apply {
 
             mainFeedsView.apply {
                 setHasFixedSize(true)
@@ -98,11 +120,11 @@ class MainFeedFragment(private val onFragmentChangeListener: OnFragmentChangeLis
                 val loading = it.source.refresh is LoadState.Loading
                 val error = it.source.refresh is LoadState.Error
                 val errorState = it.source.append as? LoadState.Error
-                        ?: it.source.prepend as? LoadState.Error
-                        ?: it.append as? LoadState.Error
-                        ?: it.prepend as? LoadState.Error
-                        ?: it.source.refresh as? LoadState.Error
-                        ?: it.refresh as? LoadState.Error
+                    ?: it.source.prepend as? LoadState.Error
+                    ?: it.append as? LoadState.Error
+                    ?: it.prepend as? LoadState.Error
+                    ?: it.source.refresh as? LoadState.Error
+                    ?: it.refresh as? LoadState.Error
 
                 if(errorState?.error is NullPointerException && error){
                     getUsers()
@@ -110,7 +132,7 @@ class MainFeedFragment(private val onFragmentChangeListener: OnFragmentChangeLis
                     noResult.isVisible =errorState?.error is NullPointerException && error
                     networkError.isVisible =errorState?.error is FirebaseFirestoreException && error
                     loader.isVisible = loading
-                    mainFeedsView.isVisible = it.source.refresh is LoadState.NotLoading && !error
+                    refreshFeeds.isVisible = it.source.refresh is LoadState.NotLoading && !error
                 }
 
 
@@ -121,7 +143,7 @@ class MainFeedFragment(private val onFragmentChangeListener: OnFragmentChangeLis
 
     private fun getUsers(){
 
-        db.collection("users").orderBy("posts").limit(5)
+        fireStore.collection("users").orderBy("posts", Query.Direction.DESCENDING).limit(5)
             .get(Source.SERVER)
             .addOnSuccessListener {
 
@@ -137,14 +159,14 @@ class MainFeedFragment(private val onFragmentChangeListener: OnFragmentChangeLis
                                 tempFollowCounts.add(FollowCountsEntityModel(user.user_id!!,
                                     user.following, user.posts, user.followers))
                             }
-                            CoroutineScope(Dispatchers.IO).launch {
-                                roomDBViewModel.insertFollowCounts(tempFollowCounts)
-                            }
-
-                        }
-                        mainFeedsUsers.visibility  = View.VISIBLE
                         loader.visibility = View.GONE
 
+                        CoroutineScope(Dispatchers.IO).launch {
+                            viewModel.insertFollowCounts(tempFollowCounts)
+                        }
+
+                    }
+                    refreshUser.visibility  = View.VISIBLE
                     }
                 }
 
@@ -153,11 +175,9 @@ class MainFeedFragment(private val onFragmentChangeListener: OnFragmentChangeLis
 
     private fun getData(){
 
-
-
         lifecycleScope.launchWhenResumed {
 
-                viewModel.mainFeeds(currentUId, roomDBViewModel).collectLatest { values ->
+                viewModel.mainFeeds(currentUId).collectLatest { values ->
                     mainFeedAdapter.submitData(values)
                 }
         }
@@ -181,7 +201,8 @@ class MainFeedFragment(private val onFragmentChangeListener: OnFragmentChangeLis
 
         private val models : List<UserInfoModel> = userInfoModels
 
-        inner class  FeedsUsersHolder(private val feedsUsersAdapterBinding: FeedsUsersAdapterBinding) : RecyclerView.ViewHolder(feedsUsersAdapterBinding.root), View.OnClickListener {
+        inner class  FeedsUsersHolder(private val feedsUsersAdapterBinding: FeedsUsersAdapterBinding)
+            : RecyclerView.ViewHolder(feedsUsersAdapterBinding.root), View.OnClickListener {
             fun bind(userInfoModel: UserInfoModel?){
 
                 feedsUsersAdapterBinding.apply {
@@ -229,9 +250,11 @@ class MainFeedFragment(private val onFragmentChangeListener: OnFragmentChangeLis
     }
 
     inner class MainFeeds(val onPostItemsClick: OnPostItemsClickListener, val upVoteClicked: OnUpVoteClickedListener,
-                          val downVoteClicked: OnDownVoteClickedListener) : PagingDataAdapter<PostWithUserInfoModel, MainFeeds.FeedsViewHolder>(DIFF_CALLBACK) {
+                          val downVoteClicked: OnDownVoteClickedListener) : PagingDataAdapter<PostWithUserInfoModel,
+            MainFeeds.FeedsViewHolder>(DIFF_CALLBACK) {
 
-        inner class FeedsViewHolder(private val mainFeedsAdapterBinding: MainFeedsAdapterBinding) : RecyclerView.ViewHolder(mainFeedsAdapterBinding.root),
+        inner class FeedsViewHolder(private val mainFeedsAdapterBinding: MainFeedsAdapterBinding)
+            : RecyclerView.ViewHolder(mainFeedsAdapterBinding.root),
                 View.OnClickListener {
 
             fun bind(postWithUserInfoModel: PostWithUserInfoModel?) {
@@ -241,7 +264,7 @@ class MainFeedFragment(private val onFragmentChangeListener: OnFragmentChangeLis
                     lifecycleScope.launchWhenResumed {
 
                         postWithUserInfoModel?.postModel?.content_id?.let {
-                            roomDBViewModel.getVoteFlow(it).collectLatest { value ->
+                            viewModel.getVoteFlow(it).collectLatest { value ->
                                 votes.text = getString(R.string.votes, value?.votes_count)
                                 val vote = {upVote : Boolean, downVote : Boolean -> up.isChecked = upVote
                                     down.isChecked = downVote }
@@ -386,7 +409,7 @@ class MainFeedFragment(private val onFragmentChangeListener: OnFragmentChangeLis
         CoroutineScope(Dispatchers.IO).launch {
 
             val setVote = {pid : String, vote : Boolean? ->
-                val docPath =   db.document("users/$userId/posts/$pid/votes/$currentUId")
+                val docPath =   fireStore.document("users/$userId/posts/$pid/votes/$currentUId")
                     if(vote != null){
                         docPath.set(hashMapOf("vote" to vote, "time" to FieldValue.serverTimestamp()), SetOptions.merge())
                     }else{
@@ -396,17 +419,17 @@ class MainFeedFragment(private val onFragmentChangeListener: OnFragmentChangeLis
             when(job){
 
                 "increment" ->{
-                    postId?.let {pId -> roomDBViewModel.updateVote(pId, vote, 1)
+                    postId?.let {pId -> viewModel.updateVote(pId, vote, 1)
                     setVote(pId, vote)
                     }
                 }
                 "decrement" ->{
-                    postId?.let {pId -> roomDBViewModel.updateVote(pId, vote, -1)
+                    postId?.let {pId -> viewModel.updateVote(pId, vote, -1)
                         setVote(pId, null)
                     }
                 }
                 "update" ->{
-                    postId?.let {pId -> roomDBViewModel.updateVoteState(pId, vote!!)
+                    postId?.let {pId -> viewModel.updateVoteState(pId, vote!!)
                         setVote(pId, vote)
                     }
                 }
@@ -422,17 +445,29 @@ class MainFeedFragment(private val onFragmentChangeListener: OnFragmentChangeLis
 
     override fun onItemClick(navigateTO: Int, postModel: PostModel?, userInfoModel: UserInfoModel?) {
 
+        val action = {addFragment : Int, bundle : Bundle-> onFragmentChangeListener.onChange(this, addFragment, bundle)}
+
+
         when(navigateTO){
-            R.integer.people_profile -> onFragmentChangeListener.onChange(this,R.integer.people_profile,Bundle().apply { putParcelable("user info", userInfoModel) })
-            R.integer.votes ->  onFragmentChangeListener.onChange(this, R.integer.votes, Bundle().apply { putStringArray("votesInfo", arrayOf(userInfoModel?.user_id, postModel?.content_id) )})
-            R.integer.result ->  onFragmentChangeListener.onChange(this, R.integer.result, Bundle().apply { putStringArray("resultInfo",
-                arrayOf(userInfoModel?.user_id, postModel?.content_id, postModel?.image_url) )})
-            R.integer.comments ->  onFragmentChangeListener.onChange(this, R.integer.comments,
-                Bundle().apply { putStringArray("commentsInfo", arrayOf(userInfoModel?.user_id, postModel?.content_id) )})
+            R.integer.people_profile -> onAction(navigateTO, Bundle().apply { putParcelable("user info", userInfoModel) }, action)
+
+            R.integer.votes ->  onAction( navigateTO, Bundle().apply { putStringArray("votesInfo",
+                arrayOf(userInfoModel?.user_id, postModel?.content_id) )}, action)
+
+            R.integer.result ->  onAction( navigateTO, Bundle().apply { putStringArray("resultInfo",
+                arrayOf(userInfoModel?.user_id, postModel?.content_id, postModel?.image_url) )}, action)
+
+            R.integer.comments ->  onAction( navigateTO, Bundle().apply { putStringArray("commentsInfo",
+                arrayOf(userInfoModel?.user_id, postModel?.content_id) )}, action)
+
 
         }
 
     }
 
 
+
+  private  inline  fun onAction(addFragment : Int, bundle: Bundle,  action : (addFragment : Int, bundle : Bundle) -> Unit ){
+      action(addFragment, bundle)
+  }
 }

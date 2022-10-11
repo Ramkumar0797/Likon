@@ -4,11 +4,10 @@ import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.QuerySnapshot
 import com.likon.gl.models.FollowCountsEntityModel
 import com.likon.gl.models.UserInfoModel
-import com.likon.gl.viewModel.RoomDBViewModel
+import com.likon.gl.viewModels.RoomDBViewModel
 
 import kotlinx.coroutines.tasks.await
 import java.lang.NullPointerException

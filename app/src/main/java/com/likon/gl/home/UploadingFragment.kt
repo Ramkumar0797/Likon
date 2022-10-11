@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.likon.*
 import com.likon.gl.*
 import com.likon.gl.databinding.FragmentUploadingBinding
 import com.likon.gl.databinding.UploadsAdapterBinding
@@ -22,7 +21,8 @@ import com.likon.gl.interfaces.OnBottomNavVisibilityListener
 import com.likon.gl.interfaces.OnFragmentBackPressed
 import com.likon.gl.models.UploadEntityModel
 import com.likon.gl.share.ShareActivity
-import com.likon.gl.viewModel.RoomDBViewModel
+import com.likon.gl.viewModels.RoomDBViewModel
+import com.likon.gl.viewModels.UploadingViewModel
 
 import kotlinx.coroutines.flow.collectLatest
 
@@ -34,7 +34,8 @@ class UploadingFragment( private val onBackPressed : OnFragmentBackPressed) : Fr
     private lateinit var mActivity: Activity
     private lateinit var main: MainActivity
     private val mContext get() = mActivity
-    private val roomDBViewModel: RoomDBViewModel by viewModels { RoomDBViewModelFactory((mContext.application as MyApplication).repository) }
+    private val viewModel: UploadingViewModel by viewModels { ViewModelFactory(null,
+        (mContext.application as MyApplication).repository, null) }
     private val uploadAdapter = UploadAdapter()
     private lateinit var onBottomNavListener : OnBottomNavVisibilityListener
 
@@ -63,7 +64,7 @@ class UploadingFragment( private val onBackPressed : OnFragmentBackPressed) : Fr
             uploadsList.adapter = uploadAdapter
             lifecycleScope.launchWhenResumed {
 
-                roomDBViewModel.getUploads().collectLatest {
+                viewModel.getUploads().collectLatest {
 
                     noResult.isVisible = it.isEmpty()
 

@@ -20,9 +20,8 @@ import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.*
 import com.likon.*
-import com.likon.gl.MainActivity
-import com.likon.gl.MyApplication
-import com.likon.gl.RoomDBViewModelFactory
+import com.likon.gl.*
+import com.likon.gl.R
 import com.likon.gl.adapters.LoadingStateAdapter
 import com.likon.gl.databinding.FragmentPeopleProfileBinding
 import com.likon.gl.interfaces.OnFragmentChangeListener
@@ -30,12 +29,13 @@ import com.likon.gl.models.FollowEntityModel
 import com.likon.gl.models.FollowStateModel
 import com.likon.gl.models.PostModel
 import com.likon.gl.models.UserInfoModel
-import com.likon.gl.viewModel.PostsViewModel
-import com.likon.gl.viewModel.RoomDBViewModel
-import com.likon.gl.R
+import com.likon.gl.viewModels.PeopleProfileViewModel
+import com.likon.gl.viewModels.RoomDBViewModel
 import com.likon.gl.databinding.ContentsAdapterBinding
 import com.likon.gl.interfaces.OnFragmentBackPressed
 import com.likon.gl.interfaces.OnPostItemsClickListener
+import com.likon.gl.repository.RoomDBRepository
+import com.likon.gl.viewModels.FollowListViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
@@ -55,9 +55,10 @@ class PeopleProfileFragment(private val onFragmentChangeListener: OnFragmentChan
     private val binding get() = _binding!!
     private var  userInfo : UserInfoModel? = null
     private lateinit var mActivity: Activity
-    private val mContext get() = mActivity
-    private val roomDBViewModel : RoomDBViewModel by viewModels{  RoomDBViewModelFactory((mContext.application as MyApplication).repository) }
-    private val viewModel by viewModels<PostsViewModel>()
+    private lateinit var fireStore : FirebaseFirestore
+    private lateinit var roomDB : RoomDBRepository
+    private val viewModel : PeopleProfileViewModel by
+    viewModels{ ViewModelFactory(fireStore, roomDB, null) }
     private lateinit var currentUserRef : DocumentReference
     private lateinit var profilerRef : DocumentReference
     private lateinit var postsListAdapter :PostsListAdapter
@@ -70,6 +71,9 @@ class PeopleProfileFragment(private val onFragmentChangeListener: OnFragmentChan
         if(context is MainActivity){
             mActivity = context
             currentUId = context.currentUserId
+            val myApplication =  (mActivity.application as MyApplication)
+            roomDB = myApplication.repository
+            fireStore = myApplication.fireStoreDB
         }
     }
 
@@ -153,7 +157,7 @@ class PeopleProfileFragment(private val onFragmentChangeListener: OnFragmentChan
                 }
 
                     lifecycleScope.launchWhenResumed {
-                        roomDBViewModel.getFollowCountsFlow(id).collectLatest {
+                        viewModel.getFollowCountsFlow(id).collectLatest {
 
                             if(it != null){
                                 binding.apply {
@@ -176,7 +180,7 @@ class PeopleProfileFragment(private val onFragmentChangeListener: OnFragmentChan
 
     private fun getPosts(userId: String, current : String){
         lifecycleScope.launchWhenResumed {
-            viewModel.mainFeeds(userId, roomDBViewModel, current)
+            viewModel.mainFeeds(userId, current)
                 .collectLatest { value ->
                     postsListAdapter.submitData(value)
                 }
@@ -207,7 +211,7 @@ class PeopleProfileFragment(private val onFragmentChangeListener: OnFragmentChan
 
     private fun setFollowState(userId : String, following : Boolean, follower : Boolean){
         CoroutineScope(Dispatchers.IO).launch {
-            roomDBViewModel.insertState(FollowEntityModel(User_id = userId, following = following, follower = follower))
+            viewModel.insertState(FollowEntityModel(User_id = userId, following = following, follower = follower))
         }
     }
 
@@ -232,7 +236,7 @@ class PeopleProfileFragment(private val onFragmentChangeListener: OnFragmentChan
     private fun setFollowStateListener( userId : String){
 
         lifecycleScope.launchWhenResumed {
-            roomDBViewModel.getFollowStateFlow(userId).collectLatest {
+            viewModel.getFollowStateFlow(userId).collectLatest {
 
                 if(it != null){
 
@@ -251,7 +255,7 @@ class PeopleProfileFragment(private val onFragmentChangeListener: OnFragmentChan
     private fun getFollowStateFromLocal( userId : String){
 
         CoroutineScope(Dispatchers.IO).launch {
-            val followState = roomDBViewModel.getFollowState(userInfo?.user_id!!)
+            val followState = viewModel.getFollowState(userInfo?.user_id!!)
             if(followState != null){
                 CoroutineScope(Dispatchers.Main).launch{
                     setFollowStateListener( userId)
@@ -339,7 +343,7 @@ class PeopleProfileFragment(private val onFragmentChangeListener: OnFragmentChan
                 batch.set( profilerRef, hashMapOf("follower" to state), SetOptions.merge())
             }
                 userInfo?.user_id?.let {
-                    roomDBViewModel.apply {
+                    viewModel.apply {
                     updateFollowState(it, setState(state))
                     updateFollowCounts(it, setCount(state))
                 } }

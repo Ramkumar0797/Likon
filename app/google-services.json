@@ -51,6 +51,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "617487275709-6f04j4nml78732pm1j4m8s8bpngs78qk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.likon.gl",
+            "certificate_hash": "c45c40a90db2f1b84f4558c880748e7f2c12a7ca"
+          }
+        },
+        {
           "client_id": "617487275709-mim1ca7t530ds2klqvm7cblq3d79hbnr.apps.googleusercontent.com",
           "client_type": 3
         }

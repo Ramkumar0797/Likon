@@ -1,9 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    >
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/time_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:visibility="gone"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:layout_marginTop="4dp"
+        android:padding="4dp"
+        android:background="@drawable/label_background"
+       />
+
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -11,6 +25,8 @@
         android:layout_margin="4dp"
         android:layout_gravity="start"
         android:orientation="vertical"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/time_label"
         android:background="@drawable/message_receive"
         android:id="@+id/receive_layout"
         android:padding="8dp"
@@ -42,6 +58,8 @@
         android:layout_margin="4dp"
         android:orientation="vertical"
         android:background="@drawable/message_send"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/time_label"
         android:layout_gravity="end"
         android:id="@+id/send_layout"
         android:visibility="gone"
@@ -79,4 +97,4 @@
     </LinearLayout>
 
 
-</FrameLayout>
+</RelativeLayout>

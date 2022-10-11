@@ -35,6 +35,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true"
+                    android:id="@+id/likon"
                     android:gravity="center"
                     android:text="Likon"
                     android:textColor="@color/black"
@@ -78,25 +79,39 @@
 
         </com.google.android.material.appbar.AppBarLayout>
 
-        <androidx.recyclerview.widget.RecyclerView
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/main_feeds_view"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            android:visibility="gone"
+            android:id="@+id/refresh_feeds"
             app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
+            android:visibility="gone">
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/main_feeds_view"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                />
 
-            />
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-        <androidx.recyclerview.widget.RecyclerView
+
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/main_feeds_users"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            android:layoutDirection="inherit"
+            android:id="@+id/refresh_user"
             app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
-            android:visibility="gone"
-            />
+            android:visibility="gone">
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/main_feeds_users"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                android:layoutDirection="inherit"
+
+                />
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

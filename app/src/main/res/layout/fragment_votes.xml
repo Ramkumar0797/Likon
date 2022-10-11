@@ -46,13 +46,20 @@
             </LinearLayout>
         </com.google.android.material.appbar.AppBarLayout>
 
-        <androidx.recyclerview.widget.RecyclerView
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/vote_list"
+            android:id="@+id/votes_refresher"
             android:visibility="invisible"
-            app:layoutManager = "androidx.recyclerview.widget.LinearLayoutManager"
-            />
+            >
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/vote_list"
+                app:layoutManager = "androidx.recyclerview.widget.LinearLayoutManager"
+                />
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 

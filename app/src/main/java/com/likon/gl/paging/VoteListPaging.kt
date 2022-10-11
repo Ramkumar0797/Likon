@@ -17,7 +17,7 @@ class VoteListPaging (private val db: FirebaseFirestore, private val userId : St
 
 
     override fun getRefreshKey(state: PagingState<QuerySnapshot, UserInfoModel>): QuerySnapshot? {
-        TODO("Not yet implemented")
+        return null
     }
 
     override suspend fun load(params: LoadParams<QuerySnapshot>): LoadResult<QuerySnapshot, UserInfoModel> {
